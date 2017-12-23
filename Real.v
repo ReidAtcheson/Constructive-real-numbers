@@ -38,26 +38,23 @@ Axiom Rmult_inv_compat : forall r, (not (Req r Rzero)) -> Req (Rmult r (Rmult_in
 
 (*Radd,Rmult,Radd_inv,Rmult_inv,Req form field*)
 
+Axiom Rmult_distributes_Radd : forall (a b c:R), Req (Rmult (Radd a b) c) (Radd (Rmult a c) (Rmult b c)).
+
+
 
 
 End Sig.
 
 
 
-
-
-
-Record R : Set := Rmake { 
-F : (Q->Q);
-Cauchy : (forall err err1 err2, err>0 -> err1>0 -> err2>0 ->
+Definition Cauchy (F:Q->Q) := forall err err1 err2, err>0 -> err1>0 -> err2>0 ->
           err1<err -> err2<err ->
-          ((Qabs ((F err1) - (F err2))) < err) )
-}.
+          ((Qabs ((F err1) - (F err2))) < err).
 
-Definition injectQ (q:Q) := fun err:Q => q.
-Definition oneR := injectQ 1.
-Definition zeroR := injectQ 0.
-Definition twoR := injectQ (1+1).
+Definition R := { F:Q->Q | Cauchy F}.
+
+
+
 
 Lemma Qabs_extensional : forall q1 q2, q1==q2 -> Qabs q1 == Qabs q2.
 Proof.
@@ -88,6 +85,25 @@ destruct Qnum, Qnum0.
 ** rewrite H0. auto with *.
 
 Qed.
+
+Definition injectQ (q:Q) : R.
+Proof.
+unfold R.
+exists (fun err =>q ).
+unfold Cauchy.
+intros.
+assert( Qabs(q-q) == Qabs(0) ).
+{
+  apply Qabs_extensional. lra.
+}
+rewrite H4.
+simpl.
+lra.
+Defined.
+
+Definition oneR := injectQ 1.
+Definition zeroR := injectQ 0.
+Definition twoR := injectQ (1+1).
 
 Definition Rplus (r1:R) (r2:R) : R.
 Proof.
@@ -143,6 +159,8 @@ lra.
 Defined.
 
 Definition Req (r1 r2 : R):= {c | forall q, q>0 -> Qabs( (F r1) q - (F r2) q) < c*q}.
+
+Theorem z_not_eq_1 : (Req zeroR oneR) -> False.
 
 
 Theorem req_works : Req oneR oneR.
